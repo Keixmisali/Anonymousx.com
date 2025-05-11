@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Kıpır Kıpır Kalp</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #0a0a0a;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  const points = [];
+  const particles = [];
+  const particleCount = 100;
+
+  // Kalp noktalarını oluştur
+  for (let t = 0; t < Math.PI * 2; t += 0.05) {
+    const x = 16 * Math.pow(Math.sin(t), 3);
+    const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+    points.push({x: x * 20 + centerX, y: y * 20 + centerY});
+  }
+
+  // Partikülleri kalp noktalarına yerleştir
+  for (let i = 0; i < particleCount; i++) {
+    const p = points[Math.floor(Math.random() * points.length)];
+    particles.push({
+      x: p.x,
+      y: p.y,
+      vx: (Math.random() - 0.5) * 2,
+      vy: (Math.random() - 0.5) * 2,
+      color: `hsl(${Math.random() * 360}, 100%, 70%)`
+    });
+  }
+
+  // Fare hareketini takip et
+  let mouseX = centerX;
+  let mouseY = centerY;
+
+  canvas.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+
+  function draw() {
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+
+      // Fareyi çekme etkisi ve sürüklenme
+      const dx = mouseX - p.x;
+      const dy = mouseY - p.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const force = Math.min(0.1, 1 / dist);
+      p.vx += dx * force;
+      p.vy += dy * force;
+
+      // Hareket ve sürtünme
+      p.vx *= 0.95;
+      p.vy *= 0.95;
+      p.x += p.vx;
+      p.y += p.vy;
+
+      // Kalbe çekilme etkisi
+      const target = points[Math.floor(Math.random() * points.length)];
+      const dx2 = target.x - p.x;
+      const dy2 = target.y - p.y;
+      p.vx += dx2 * 0.001;
+      p.vy += dy2 * 0.001;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+</script>
+</body>
+</html>
